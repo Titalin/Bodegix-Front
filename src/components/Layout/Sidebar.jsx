@@ -33,7 +33,6 @@ const Sidebar = () => {
             });
 
             if (!response.ok) {
-                // Opcional: manejar error en logout backend
                 console.error('Error al cerrar sesión en backend');
             }
         } catch (error) {
@@ -46,9 +45,12 @@ const Sidebar = () => {
         navigate('/login');
     };
 
-    const isAdmin = user?.rol_id === 1 || user?.rol_id === 2;
+    // Determina roles
+    const isSuperAdmin = user?.rol_id === 1;
+    const isAdminEmpresa = user?.rol_id === 2;
 
-    const adminMenuItems = [
+    // Menú para SuperAdmin
+    const superAdminMenuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
         { text: 'Usuarios', icon: <PeopleIcon />, path: '/admin/users' },
         { text: 'Reportes', icon: <ReportIcon />, path: '/admin/reports' },
@@ -57,12 +59,33 @@ const Sidebar = () => {
         { text: 'Configuración', icon: <SettingsIcon />, path: '/admin/settings' }
     ];
 
+    // Menú para Admin Empresa (más reducido o distinto)
+    const adminEmpresaMenuItems = [
+        { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
+        { text: 'Usuarios', icon: <PeopleIcon />, path: '/admin/users' },
+        { text: 'Reportes', icon: <ReportIcon />, path: '/admin/reports' },
+        // Admin empresa no puede registrar empresas ni ver gráficas generales, por ejemplo
+        { text: 'Configuración', icon: <SettingsIcon />, path: '/admin/settings' }
+    ];
+
+    // Menú para clientes normales
     const clienteMenuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/cliente/dashboard' },
         { text: 'Monitoreo Tiempo Real', icon: <MonitorIcon />, path: '/cliente/monitoreo' },
     ];
 
-    const menuItems = isAdmin ? adminMenuItems : clienteMenuItems;
+    // Selección menú según rol
+    let menuItems = clienteMenuItems;
+    if (isSuperAdmin) {
+        menuItems = superAdminMenuItems;
+    } else if (isAdminEmpresa) {
+        menuItems = adminEmpresaMenuItems;
+    }
+
+    // Cambiar color de fondo según rol para dar más feedback visual
+    let drawerBgColor = '#37474f'; // cliente
+    if (isSuperAdmin) drawerBgColor = '#1a2540'; // azul oscuro para superadmin
+    else if (isAdminEmpresa) drawerBgColor = '#263238'; // gris oscuro para admin empresa
 
     return (
         <Drawer
@@ -73,7 +96,7 @@ const Sidebar = () => {
                 '& .MuiDrawer-paper': {
                     width: 240,
                     boxSizing: 'border-box',
-                    backgroundColor: isAdmin ? '#1a2540' : '#37474f',
+                    backgroundColor: drawerBgColor,
                     color: '#ffffff',
                 },
             }}

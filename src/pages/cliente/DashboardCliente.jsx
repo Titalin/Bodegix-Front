@@ -1,4 +1,3 @@
-// src/pages/cliente/DashboardCliente.jsx
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Paper, Typography } from '@mui/material';
 import {
@@ -9,7 +8,7 @@ import {
 } from '@mui/icons-material';
 import Sidebar from '../../components/Layout/Sidebar';
 import Topbar from '../../components/Layout/Topbar';
-import { jwtDecode } from 'jwt-decode'; // named import
+import { jwtDecode } from 'jwt-decode';
 
 const DashboardCliente = () => {
   const [lockers, setLockers] = useState([]);
@@ -18,41 +17,40 @@ const DashboardCliente = () => {
 
   const token = localStorage.getItem('token');
   const decoded = token ? jwtDecode(token) : null;
-  const empresaId = decoded?.empresa_id;
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!empresaId) {
+      if (!token) {
         setLoading(false);
         return;
       }
       try {
-        // Traemos lockers de la empresa
-        const resLockers = await fetch(`/api/lockers?empresa_id=${empresaId}`, {
+        const resLockers = await fetch('/api/lockers', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const lockersData = await resLockers.json();
+        console.log('Lockers:', lockersData);
         setLockers(lockersData);
 
-        // Traemos empleados de la empresa (rol_id === 3)
-        const resEmpleados = await fetch(`/api/usuarios?empresa_id=${empresaId}&rol_id=3`, {
+        const resEmpleados = await fetch('/api/usuarios/empleados', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const empleadosData = await resEmpleados.json();
+        console.log('Empleados:', empleadosData);
         setEmpleados(empleadosData);
       } catch (err) {
-        console.error('Error al obtener datos:', err);
+        console.error('Error loading data:', err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [empresaId, token]);
+  }, [token]);
 
   const totalLockers = lockers.length;
-  const asignados = lockers.filter(l => l.estado === 'asignado').length;
-  const disponibles = lockers.filter(l => l.estado === 'disponible').length;
+  const asignados = lockers.filter(l => l.estado === 'activo').length;
+  const disponibles = lockers.filter(l => l.estado === 'inactivo').length;
   const totalEmpleados = empleados.length;
 
   const stats = [
@@ -72,26 +70,29 @@ const DashboardCliente = () => {
         ) : (
           <Grid container spacing={3} mt={2}>
             {stats.map((stat, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Paper
-                  sx={{
-                    p: 3,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%',
-                    backgroundColor: index % 2 === 0 ? 'primary.light' : 'secondary.light',
-                  }}
-                >
-                  <Box color="primary.main" mb={2}>
-                    {stat.icon}
-                  </Box>
-                  <Typography variant="h5" fontWeight="bold">
-                    {stat.value}
-                  </Typography>
-                  <Typography variant="subtitle1">{stat.title}</Typography>
-                </Paper>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={3}
+                key={index}
+                sx={{
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  backgroundColor: index % 2 === 0 ? 'primary.light' : 'secondary.light',
+                }}
+              >
+                <Box color="primary.main" mb={2}>
+                  {stat.icon}
+                </Box>
+                <Typography variant="h5" fontWeight="bold">
+                  {stat.value}
+                </Typography>
+                <Typography variant="subtitle1">{stat.title}</Typography>
               </Grid>
             ))}
           </Grid>
