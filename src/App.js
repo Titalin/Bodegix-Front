@@ -1,49 +1,81 @@
 // src/App.js
+
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from './styles/theme';
+import { AuthProvider } from './context/AuthContext';
+
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import UsersPage from './pages/UsersPage';
-import LockersPage from './pages/LockersPage';
+import DashboardAdmin from './pages/admin/DashboardAdmin';
+import DashboardCliente from './pages/cliente/DashboardCliente';
+import UsersPage from './pages/admin/UsersPage';
+import Reports from './pages/admin/Reports';
+import RegistroEmpresas from './pages/admin/RegistroEmpresas';
+import VisualizacionGraficas from './pages/admin/VisualizacionGraficas';
+import MonitoreoTiempoReal from './pages/cliente/MonitoreoTiempoReal';
+import SettingsPage from './pages/admin/SettingsPage';
 
-// Nuevas páginas
-import Reports from './pages/Reports';
-import AminsrarSuscripciones from './pages/AdministrarSuscripciones';
-import RegistroUsuario from './pages/RegistroUsuario';
-import MonitoreoTiempoReal from './pages/MonitoreoTiempoReal';
-import VisualizacionFraficas from './pages/VisualizacionGraficas';
-
-import { AuthProvider, AuthContext } from './context/AuthContext';
-
-// Ruta protegida
-const PrivateRoute = ({ children }) => {
-  const { user } = React.useContext(AuthContext);
-  return user ? children : <Navigate to="/" />;
-};
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import theme from './styles/theme';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
+        <BrowserRouter>
           <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-            <Route path="/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
-            <Route path="/lockers" element={<PrivateRoute><LockersPage /></PrivateRoute>} />
+            <Route path="/login" element={<LoginPage />} />
 
-            {/* Nuevas rutas */}
-            <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
-            <Route path="/suscripciones" element={<PrivateRoute><AminsrarSuscripciones /></PrivateRoute>} />
-            <Route path="/registro" element={<PrivateRoute><RegistroUsuario /></PrivateRoute>} />
-            <Route path="/monitoreo" element={<PrivateRoute><MonitoreoTiempoReal /></PrivateRoute>} />
-            <Route path="/graficas" element={<PrivateRoute><VisualizacionFraficas /></PrivateRoute>} />
+            {/* Admin */}
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
+                <DashboardAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
+                <UsersPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
+                <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/register-company" element={
+              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
+                <RegistroEmpresas />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/charts" element={
+              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
+                <VisualizacionGraficas />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
+                <SettingsPage />
+              </ProtectedRoute>
+            } />
+
+            {/* Cliente */}
+            <Route path="/cliente/dashboard" element={
+              <ProtectedRoute rolesAllowed={['cliente', 2]}>
+                <DashboardCliente />
+              </ProtectedRoute>
+            } />
+            <Route path="/cliente/monitoreo" element={
+              <ProtectedRoute rolesAllowed={['cliente', 2]}>
+                <MonitoreoTiempoReal />
+              </ProtectedRoute>
+            } />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
-        </Router>
+        </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
   );

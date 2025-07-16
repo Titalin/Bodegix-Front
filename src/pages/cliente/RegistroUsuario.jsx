@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, TextField, Button, Grid } from '@mui/material';
-import Sidebar from '../components/Layout/Sidebar';
-import Topbar from '../components/Layout/Topbar';
+import Sidebar from '../../components/Layout/Sidebar';
+import Topbar from '../../components/Layout/Topbar';
 
 const RegistroUsuario = () => {
   const [formData, setFormData] = useState({

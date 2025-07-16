@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Paper } from '@mui/material';
-import Sidebar from '../components/Layout/Sidebar';
-import Topbar from '../components/Layout/Topbar';
+import Sidebar from '../../components/Layout/Sidebar';
+import Topbar from '../../components/Layout/Topbar';
 
 const Reports = () => {
   return (
