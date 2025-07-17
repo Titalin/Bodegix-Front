@@ -8,13 +8,16 @@ import { AuthProvider } from './context/AuthContext';
 
 import LoginPage from './pages/LoginPage';
 import DashboardAdmin from './pages/admin/DashboardAdmin';
-import DashboardCliente from './pages/cliente/DashboardCliente';
-import UsersPage from './pages/admin/UsersPage';
-import Reports from './pages/admin/Reports';
 import RegistroEmpresas from './pages/admin/RegistroEmpresas';
 import VisualizacionGraficas from './pages/admin/VisualizacionGraficas';
+import SettingsPageAdmin from './pages/admin/SettingsPage';
+
+import DashboardCliente from './pages/cliente/DashboardCliente';
 import MonitoreoTiempoReal from './pages/cliente/MonitoreoTiempoReal';
-import SettingsPage from './pages/admin/SettingsPage';
+import AdministrarSuscripciones from './pages/cliente/AdministrarSuscripciones';
+import LockersPage from './pages/cliente/LockersPage';
+import RegistroEmpleado from './pages/cliente/RegistroEmpleado';
+import SettingsPageCliente from './pages/cliente/SettingsPage';
 
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import theme from './styles/theme';
@@ -28,20 +31,10 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Admin */}
+            {/* Rutas para SuperAdmin */}
             <Route path="/admin/dashboard" element={
               <ProtectedRoute rolesAllowed={['superadmin', 1]}>
                 <DashboardAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
-                <UsersPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/reports" element={
-              <ProtectedRoute rolesAllowed={['superadmin', 1]}>
-                <Reports />
               </ProtectedRoute>
             } />
             <Route path="/admin/register-company" element={
@@ -56,11 +49,11 @@ function App() {
             } />
             <Route path="/admin/settings" element={
               <ProtectedRoute rolesAllowed={['superadmin', 1]}>
-                <SettingsPage />
+                <SettingsPageAdmin />
               </ProtectedRoute>
             } />
 
-            {/* Cliente */}
+            {/* Rutas para Admin Empresa (cliente) */}
             <Route path="/cliente/dashboard" element={
               <ProtectedRoute rolesAllowed={['cliente', 2]}>
                 <DashboardCliente />
@@ -69,6 +62,26 @@ function App() {
             <Route path="/cliente/monitoreo" element={
               <ProtectedRoute rolesAllowed={['cliente', 2]}>
                 <MonitoreoTiempoReal />
+              </ProtectedRoute>
+            } />
+            <Route path="/cliente/suscripciones" element={
+              <ProtectedRoute rolesAllowed={['cliente', 2]}>
+                <AdministrarSuscripciones />
+              </ProtectedRoute>
+            } />
+            <Route path="/cliente/lockers" element={
+              <ProtectedRoute rolesAllowed={['cliente', 2]}>
+                <LockersPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/cliente/register-user" element={
+              <ProtectedRoute rolesAllowed={['cliente', 2]}>
+                <RegistroEmpleado />
+              </ProtectedRoute>
+            } />
+            <Route path="/cliente/settings" element={
+              <ProtectedRoute rolesAllowed={['cliente', 2]}>
+                <SettingsPageCliente />
               </ProtectedRoute>
             } />
 

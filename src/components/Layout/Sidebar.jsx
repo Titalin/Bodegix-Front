@@ -1,4 +1,3 @@
-// src/components/Sidebar.jsx
 import React from 'react';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import {
@@ -10,6 +9,8 @@ import {
     PersonAdd as RegisterIcon,
     Visibility as MonitorIcon,
     ShowChart as ChartIcon,
+    Lock as LockersIcon,
+    Person as PersonIcon
 } from '@mui/icons-material';
 import Logo from '../common/Logo';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +24,6 @@ const Sidebar = () => {
         const token = localStorage.getItem('token');
 
         try {
-            // Llamar al backend para cerrar sesión
             const response = await fetch('http://localhost:5000/api/usuarios/logout', {
                 method: 'POST',
                 headers: {
@@ -39,17 +39,14 @@ const Sidebar = () => {
             console.error('Error al comunicarse con backend para logout:', error);
         }
 
-        // Luego limpia el token local y el estado de contexto
         localStorage.removeItem('token');
         logout();
         navigate('/login');
     };
 
-    // Determina roles
     const isSuperAdmin = user?.rol_id === 1;
     const isAdminEmpresa = user?.rol_id === 2;
 
-    // Menú para SuperAdmin
     const superAdminMenuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
         { text: 'Usuarios', icon: <PeopleIcon />, path: '/admin/users' },
@@ -59,22 +56,20 @@ const Sidebar = () => {
         { text: 'Configuración', icon: <SettingsIcon />, path: '/admin/settings' }
     ];
 
-    // Menú para Admin Empresa (más reducido o distinto)
     const adminEmpresaMenuItems = [
-        { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-        { text: 'Usuarios', icon: <PeopleIcon />, path: '/admin/users' },
-        { text: 'Reportes', icon: <ReportIcon />, path: '/admin/reports' },
-        // Admin empresa no puede registrar empresas ni ver gráficas generales, por ejemplo
-        { text: 'Configuración', icon: <SettingsIcon />, path: '/admin/settings' }
+        { text: 'Dashboard', icon: <DashboardIcon />, path: '/cliente/dashboard' },
+        { text: 'Monitoreo', icon: <ReportIcon />, path: '/cliente/monitoreo' },
+        { text: 'Lockers', icon: <LockersIcon />, path: '/cliente/lockers' },
+        { text: 'Suscripciones', icon: <RegisterIcon />, path: '/cliente/suscripciones' },
+        { text: 'Registrar Empleado', icon: <PersonIcon />, path: '/cliente/register-user' },
+        { text: 'Configuración', icon: <SettingsIcon />, path: '/cliente/settings' }
     ];
 
-    // Menú para clientes normales
     const clienteMenuItems = [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/cliente/dashboard' },
         { text: 'Monitoreo Tiempo Real', icon: <MonitorIcon />, path: '/cliente/monitoreo' },
     ];
 
-    // Selección menú según rol
     let menuItems = clienteMenuItems;
     if (isSuperAdmin) {
         menuItems = superAdminMenuItems;
@@ -82,10 +77,9 @@ const Sidebar = () => {
         menuItems = adminEmpresaMenuItems;
     }
 
-    // Cambiar color de fondo según rol para dar más feedback visual
-    let drawerBgColor = '#37474f'; // cliente
-    if (isSuperAdmin) drawerBgColor = '#1a2540'; // azul oscuro para superadmin
-    else if (isAdminEmpresa) drawerBgColor = '#263238'; // gris oscuro para admin empresa
+    let drawerBgColor = '#37474f';
+    if (isSuperAdmin) drawerBgColor = '#1a2540';
+    else if (isAdminEmpresa) drawerBgColor = '#263238';
 
     return (
         <Drawer

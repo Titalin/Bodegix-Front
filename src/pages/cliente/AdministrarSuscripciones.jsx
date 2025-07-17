@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Grid, Card, CardContent, Button, Chip, Divider } from '@mui/material';
-import Sidebar from '../components/Layout/Sidebar';
-import Topbar from '../components/Layout/Topbar';
+import Sidebar from '../../components/Layout/Sidebar';
+import Topbar from '../../components/Layout/Topbar';
 
 const planes = [
   { nombre: 'Basico', limite_usuarios: 5, costo: '$9.99/mes', tipo_pago: 'Mensual' },

@@ -18,35 +18,54 @@ const DashboardCliente = () => {
   const token = localStorage.getItem('token');
   const decoded = token ? jwtDecode(token) : null;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const resLockers = await fetch('/api/lockers', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const lockersData = await resLockers.json();
-        console.log('Lockers:', lockersData);
+useEffect(() => {
+  const fetchData = async () => {
+    if (!token || !decoded?.empresa_id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const resLockers = await fetch(`/api/lockers?empresa_id=${decoded.empresa_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const lockersData = await resLockers.json();
+      console.log('Lockers:', lockersData);
+
+      if (Array.isArray(lockersData)) {
         setLockers(lockersData);
-
-        const resEmpleados = await fetch('/api/usuarios/empleados', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const empleadosData = await resEmpleados.json();
-        console.log('Empleados:', empleadosData);
-        setEmpleados(empleadosData);
-      } catch (err) {
-        console.error('Error loading data:', err);
-      } finally {
-        setLoading(false);
+      } else {
+        console.error('Respuesta inválida de lockers:', lockersData);
+        setLockers([]);
       }
-    };
 
-    fetchData();
-  }, [token]);
+      const resEmpleados = await fetch('/api/usuarios/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const empleadosData = await resEmpleados.json();
+      console.log('Empleados:', empleadosData);
+
+      if (Array.isArray(empleadosData)) {
+        setEmpleados(empleadosData);
+      } else {
+        console.error('Respuesta inválida de empleados:', empleadosData);
+        setEmpleados([]);
+      }
+
+    } catch (err) {
+      console.error('Error loading data:', err);
+      setLockers([]);
+      setEmpleados([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [token, decoded]);
+
 
   const totalLockers = lockers.length;
   const asignados = lockers.filter(l => l.estado === 'activo').length;

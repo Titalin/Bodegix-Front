@@ -1,4 +1,6 @@
-import React from 'react';
+// src/pages/cliente/LockersPage.jsx
+
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Grid,
@@ -7,86 +9,241 @@ import {
   Button,
   Chip,
   Avatar,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Stack,
+  Divider,
+  TextField,
 } from '@mui/material';
-import { Lock as LockerIcon, Person as PersonIcon } from '@mui/icons-material';
-import Sidebar from '../components/Layout/Sidebar';
-import Topbar from '../components/Layout/Topbar';
+import {
+  Lock as LockerIcon,
+  Person as PersonIcon,
+  PowerSettingsNew as EstadoIcon,
+  Edit as EditIcon,
+} from '@mui/icons-material';
+import Sidebar from '../../components/Layout/Sidebar';
+import Topbar from '../../components/Layout/Topbar';
+import { jwtDecode } from 'jwt-decode';
 
 const LockersPage = () => {
-  // Datos simulados de lockers
-  const lockerRows = [
-    ['A01', 'A02', 'A03', 'A04', 'A05'],
-    ['A06', 'A07', 'A08', 'A09', 'A10'],
-    ['B01', 'B02', 'B03', 'B04', 'B05'],
-    ['B06', 'B07', 'B08', 'B09', 'B10'],
-  ];
+  const [lockers, setLockers] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
+  const [token, setToken] = useState('');
+  const [empresaId, setEmpresaId] = useState(null);
+  const [editValues, setEditValues] = useState({});
 
-  // Lockers asignados (simulado)
-  const assignedLockers = {
-    A02: 'Juan Pérez',
-    A05: 'María García',
-    B03: 'Carlos López',
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) return;
+    const decoded = jwtDecode(storedToken);
+    setEmpresaId(decoded.empresa_id);
+    setToken(storedToken);
+  }, []);
+
+  const fetchLockers = async () => {
+    try {
+      const res = await fetch(`/api/lockers?empresa_id=${empresaId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setLockers(data);
+    } catch (error) {
+      console.error('Error al obtener lockers:', error);
+    }
+  };
+
+  const fetchEmpleados = async () => {
+    try {
+      const res = await fetch(`/api/usuarios?rol_id=3`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setEmpleados(data);
+    } catch (error) {
+      console.error('Error al obtener empleados:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (empresaId && token) {
+      fetchLockers();
+      fetchEmpleados();
+    }
+  }, [empresaId, token]);
+
+  const handleUpdateLocker = async (lockerId, values) => {
+    try {
+      const res = await fetch(`/api/lockers/${lockerId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error('Error al actualizar locker');
+      fetchLockers();
+    } catch (error) {
+      console.error('Error al actualizar locker:', error);
+    }
+  };
+
+  const handleChange = (lockerId, field, value) => {
+    setEditValues((prev) => ({
+      ...prev,
+      [lockerId]: {
+        ...prev[lockerId],
+        [field]: value,
+      },
+    }));
+  };
+
+  const getTipoColor = (tipo) => {
+    switch (tipo) {
+      case 'frios': return 'info';
+      case 'perecederos': return 'warning';
+      case 'no_perecederos': return 'success';
+      default: return 'default';
+    }
   };
 
   return (
     <Box display="flex">
       <Sidebar />
       <Box flexGrow={1} p={3}>
-        <Topbar title="Administración de Lockers" />
+        <Topbar title="Gestión de Lockers" />
         <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Asignación de Lockers
-          </Typography>
-          <Typography variant="body1" color="textSecondary">
-            Seleccione un locker para asignarlo a un usuario
+          <Typography variant="h6">Lockers por Empresa</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Edita, asigna y administra los lockers.
           </Typography>
         </Paper>
 
-        {lockerRows.map((row, rowIndex) => (
-          <Grid container spacing={2} key={rowIndex} mb={2}>
-            {row.map((locker) => {
-              const isAssigned = assignedLockers[locker];
-              return (
-                <Grid item xs={12} sm={6} md={4} lg={2.4} key={locker}>
-                  <Paper
-                    sx={{
-                      p: 2,
-                      textAlign: 'center',
-                      backgroundColor: isAssigned ? 'secondary.light' : 'primary.light',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        transform: 'scale(1.05)',
-                        transition: 'transform 0.2s',
-                      },
-                    }}
-                  >
-                    <LockerIcon fontSize="large" color={isAssigned ? 'secondary' : 'primary'} />
-                    <Typography variant="h6" mt={1}>
-                      {locker}
-                    </Typography>
-                    {isAssigned ? (
+        <Grid container spacing={3}>
+          {lockers.map((locker) => {
+            const isActivo = locker.estado === 'activo';
+            const edit = editValues[locker.id] || {};
+
+            return (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={locker.id}>
+                <Paper
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    backgroundColor: isActivo ? '#f1f8e9' : '#ffebee',
+                    border: `2px solid ${isActivo ? '#43a047' : '#e53935'}`,
+                    boxShadow: 4,
+                  }}
+                >
+                  <Stack spacing={1}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <LockerIcon color={isActivo ? 'success' : 'error'} />
+                      <TextField
+                        size="small"
+                        label="Identificador"
+                        fullWidth
+                        value={edit.identificador ?? locker.identificador}
+                        onChange={(e) => handleChange(locker.id, 'identificador', e.target.value)}
+                      />
+                    </Stack>
+                    <TextField
+                      size="small"
+                      label="Ubicación"
+                      fullWidth
+                      value={edit.ubicacion ?? locker.ubicacion}
+                      onChange={(e) => handleChange(locker.id, 'ubicacion', e.target.value)}
+                    />
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>Tipo</InputLabel>
+                      <Select
+                        value={edit.tipo ?? locker.tipo}
+                        label="Tipo"
+                        onChange={(e) => handleChange(locker.id, 'tipo', e.target.value)}
+                      >
+                        <MenuItem value="frios">Fríos</MenuItem>
+                        <MenuItem value="perecederos">Perecederos</MenuItem>
+                        <MenuItem value="no_perecederos">No Perecederos</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <FormControl size="small" fullWidth>
+  <InputLabel>Empleado</InputLabel>
+  <Select
+    value={edit.usuario_id !== undefined ? edit.usuario_id : locker.usuario_id ?? ''}
+    label="Empleado"
+    onChange={(e) => handleChange(locker.id, 'usuario_id', e.target.value === '' ? null : e.target.value)}
+  >
+    <MenuItem value="">
+      <em>Sin asignar</em>
+    </MenuItem>
+    {empleados
+      .filter((emp) => emp.rol_id === 3 && emp.empresa_id === empresaId)
+      .map((emp) => (
+        <MenuItem key={emp.id} value={emp.id}>
+          {emp.nombre}
+        </MenuItem>
+      ))}
+  </Select>
+</FormControl>
+
+
+
+
+                    {locker.usuario?.nombre && (
                       <Chip
                         avatar={<Avatar><PersonIcon /></Avatar>}
-                        label={assignedLockers[locker]}
+                        label={`Asignado: ${locker.usuario.nombre}`}
                         color="secondary"
                         sx={{ mt: 1 }}
                       />
-                    ) : (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{ mt: 1 }}
-                        onClick={() => console.log(`Asignar locker ${locker}`)}
-                      >
-                        Asignar
-                      </Button>
                     )}
-                  </Paper>
-                </Grid>
-              );
-            })}
-          </Grid>
-        ))}
+
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        startIcon={<EstadoIcon />}
+                        variant="contained"
+                        color={isActivo ? 'error' : 'success'}
+                        onClick={() => handleUpdateLocker(locker.id, {
+                          estado: isActivo ? 'inactivo' : 'activo'
+                        })}
+                      >
+                        {isActivo ? 'Desactivar' : 'Activar'}
+                      </Button>
+
+                      <Button
+  startIcon={<EditIcon />}
+  variant="outlined"
+  onClick={() => {
+    const updatedUsuarioId =
+      edit.usuario_id !== undefined ? edit.usuario_id : locker.usuario_id ?? null;
+    const valuesToUpdate = {
+      identificador: edit.identificador ?? locker.identificador,
+      ubicacion: edit.ubicacion ?? locker.ubicacion,
+      tipo: edit.tipo ?? locker.tipo,
+      usuario_id: updatedUsuarioId,
+    };
+
+    // Si no hay usuario asignado, también desactiva el locker
+    if (updatedUsuarioId === null) {
+      valuesToUpdate.estado = 'inactivo';
+    }
+
+    handleUpdateLocker(locker.id, valuesToUpdate);
+  }}
+>
+  Guardar cambios
+</Button>
+
+
+                    </Stack>
+                  </Stack>
+                </Paper>
+              </Grid>
+            );
+          })}
+        </Grid>
       </Box>
     </Box>
   );
